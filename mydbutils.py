@@ -3,8 +3,10 @@ from configparser import ConfigParser
 import sqlite3
 from sqlite3 import OperationalError
 import csv
+from pandas import DataFrame
+from IPython.display import display
 
-def read_config(config_file = 'pinnacle_wh.ini', section = 'mysql'):
+def read_config(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = []):
     parser = ConfigParser()
     parser.read(config_file)
     
@@ -22,11 +24,13 @@ def read_config(config_file = 'pinnacle_wh.ini', section = 'mysql'):
         raise Exception(f'Section [{section}] missing ' + \
                         f'in config file {config_file}')
     
+    for remove in list_remove_from_config:
+            config.pop(remove, None)
     return config
         
-def make_connection(config_file = 'pinnacle_wh.ini', section = 'mysql'):
+def make_connection(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = []):
     try:
-        db_config = read_config(config_file, section)
+        db_config = read_config(config_file, section, list_remove_from_config)
         conn = MySQLConnection(**db_config)
 
         if conn.is_connected():
@@ -72,7 +76,7 @@ def do_query(sql):
     cursor = None
     
     # Connect to the database.
-    conn = make_connection()
+    conn = make_connection(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = ['drivername','username'])
         
     if conn != None:
         try:
@@ -131,8 +135,9 @@ def set_data_to_table_cells(ui_table, rows, money_index):
         i = 0
         for data in row:
             string_item = str(data)
-            if i in money_index:
-                string_item = "${:,.2f}".format(data)
+            if money_index:
+                if i in money_index:
+                    string_item = "${:,.2f}".format(data)
             item = QTableWidgetItem(string_item)
             ui_table.setItem(row_index, column_index, item)
             column_index += 1
@@ -156,11 +161,10 @@ def adjust_column_widths(ui_table):
             header.setSectionResizeMode(i, QHeaderView.Stretch)
         i += 1
 
-def executeScriptsFromFile(filename, config_file='pinnacle_db.ini'):
+def executeScriptsFromFile(conn, filename):
     """
-    filename = "pinnacle_db.sql"
+    filename = "superstore_db_schema.sql"
     """
-    conn = make_connection(config_file)
     # Open and read the file as a single buffer
     fd = open(filename, 'r')
     sqlFile = fd.read()
@@ -175,11 +179,12 @@ def executeScriptsFromFile(filename, config_file='pinnacle_db.ini'):
         try:
             cursor = conn.cursor()
             for command in sqlCommands:
-                try:
-                    cursor.execute(command)
-                    check = 1
-                except OperationalError:
-                    print("Command skipped: ")
+                if command != '\n':
+                    try:
+                        cursor.execute(command)
+                        check = 1
+                    except OperationalError:
+                        print("Command skipped: ")
 
             cursor.close()
         except Error as e:
@@ -188,7 +193,7 @@ def executeScriptsFromFile(filename, config_file='pinnacle_db.ini'):
     
     return check
 
-def insert_csv(sql_insert, filename, config_file='pinnacle_db.ini'):
+def insert_csv(sql_insert, filename, config_file='superstore_db.ini'):
     conn = make_connection(config_file)
     cursor = conn.cursor()
     first = True
@@ -207,3 +212,63 @@ def insert_csv(sql_insert, filename, config_file='pinnacle_db.ini'):
     
     cursor.close()
     return check
+
+def output_dataframe_to_DB(df, table_name, conn):
+    try:
+        cursor = conn.cursor()
+        # creating column list for insertion
+        cols = ",".join([str(i) for i in df.columns.tolist()])
+        # Insert DataFrame recrds one by one.
+        for i,row in df.iterrows():
+            sql = "INSERT INTO " + table_name + " (" +cols + ") VALUES (" + "%s,"*(len(row)-1) + "%s)"
+            cursor.execute(sql, tuple(row))
+            # the connection is not autocommitted by default, so we must commit to save our changes
+            conn.commit()
+    except Exception as e:
+        conn.rollback()
+        cursor.close()
+
+def display_table(table, cursor):
+    """
+    Use the cursor to return the contents of the database table
+    in a dataframe.
+    """
+    sql = f"SELECT * FROM {table}"
+    cursor.execute(sql)
+    
+    # Get the names of the columns.
+    columns = cursor.description
+    column_names = [column_info[0] for column_info in columns]
+
+    # Fetch and return the contents in a dataframe.
+    df = DataFrame(cursor.fetchall())
+    df.columns = column_names
+    return df
+
+def display_database(database_name, config_file):
+    """
+    Use the configuration file to display the tables
+    of the database named database_name.
+    """
+    conn = make_connection(config_file=config_file,list_remove_from_config = ['drivername', 'username'])
+    cursor = conn.cursor()
+    
+    print('-'*(len('DATABASE ' + database_name)))
+    print(f'DATABASE {database_name}')
+    print('-'*(len('DATABASE ' + database_name)))
+    
+    # Get the names of the database tables.
+    cursor.execute('SHOW TABLES');
+    results = cursor.fetchall()
+    tables = [result[0] for result in results]
+    
+    # Display the contents of each table in a dataframe.
+    for table in tables:
+        print()
+        print(table)
+        
+        df = display_table(table, cursor)
+        display(df.head(20))
+        
+    cursor.close()
+    conn.close()
