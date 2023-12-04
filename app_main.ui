@@ -17,7 +17,7 @@
    <string notr="true">background-image: url(:/images/images/background1.png);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="insert_sales_button">
+   <widget class="QPushButton" name="db_admin_button">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -32,10 +32,10 @@
      </font>
     </property>
     <property name="text">
-     <string>Insert Sales Data</string>
+     <string>DB Admin</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="sales_analysis_button">
+   <widget class="QPushButton" name="customer_button">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -50,10 +50,10 @@
      </font>
     </property>
     <property name="text">
-     <string>Sales Performance</string>
+     <string>Customer</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="querying_sales_button">
+   <widget class="QPushButton" name="sales_associate_button">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -68,7 +68,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Querying Sales Data</string>
+     <string>Sales Associate</string>
     </property>
    </widget>
   </widget>

@@ -1,9 +1,9 @@
 from PyQt5 import uic
 from PyQt5.QtGui import QWindow
-from PyQt5.QtWidgets import QMessageBox
+from SalesAssociate import SalesAssociateDialog
+from Customer import CustomerDialog
+from DBAdmin import DBAdminDialog
 import resources
-from Querying import QueryingDialog
-import resources1
 
 class AppWindow(QWindow):
     """
@@ -20,16 +20,32 @@ class AppWindow(QWindow):
         self.ui.show()
 
 
-        # Querying dialog.
-        self._quering_dialog = QueryingDialog()
-        self.ui.querying_sales_button.clicked.connect(self._show_querying_dialog)
-        #
-        # # Product Lines dialog.
-        # self._productLines_dialog = ProductLinesDialog()
-        # self.ui.productLines_button.clicked.connect(self._show_productLines_dialog)
+        # Sales Associate dialog.
+        self._sales_associate_dialog = SalesAssociateDialog()
+        self.ui.sales_associate_button.clicked.connect(self._show_sales_associate_dialog)
 
-    def _show_querying_dialog(self):
+        # Customer dialog.
+        self._customer_dialog = CustomerDialog()
+        self.ui.customer_button.clicked.connect(self._show_customer_dialog)
+        
+        # DB Admin dialog.
+        self._db_admin_dialog = DBAdminDialog()
+        self.ui.db_admin_button.clicked.connect(self._show_db_admin_dialog)
+
+    def _show_sales_associate_dialog(self):
         """
-        Show the querying dialog.
+        Show the Sales Associate dialog.
         """
-        self._quering_dialog.show_dialog()
+        self._sales_associate_dialog.show_dialog()
+        
+    def _show_customer_dialog(self):
+        """
+        Show the Customer dialog.
+        """
+        self._customer_dialog.show_dialog()
+    
+    def _show_db_admin_dialog(self):
+        """
+        Show the DB Admin dialog.
+        """
+        self._db_admin_dialog.show_dialog()

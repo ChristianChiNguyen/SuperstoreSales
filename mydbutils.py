@@ -1,12 +1,11 @@
 from mysql.connector import MySQLConnection, Error
 from configparser import ConfigParser
-import sqlite3
 from sqlite3 import OperationalError
 import csv
 from pandas import DataFrame
 from IPython.display import display
 
-def read_config(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = []):
+def read_config(config_file = 'superstore_db.ini', section = 'mysql', list_remove_from_config = []):
     parser = ConfigParser()
     parser.read(config_file)
     
@@ -28,7 +27,7 @@ def read_config(config_file = 'superstore_test_db.ini', section = 'mysql', list_
             config.pop(remove, None)
     return config
         
-def make_connection(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = []):
+def make_connection(config_file = 'superstore_db.ini', section = 'mysql', list_remove_from_config = []):
     try:
         db_config = read_config(config_file, section, list_remove_from_config)
         conn = MySQLConnection(**db_config)
@@ -76,7 +75,7 @@ def do_query(sql):
     cursor = None
     
     # Connect to the database.
-    conn = make_connection(config_file = 'superstore_test_db.ini', section = 'mysql', list_remove_from_config = ['drivername','username'])
+    conn = make_connection(config_file = 'superstore_db.ini', section = 'mysql', list_remove_from_config = ['drivername','username'])
         
     if conn != None:
         try:
@@ -100,27 +99,27 @@ def do_query(sql):
     else:
         return [(), 0]
 
-def do_query_return_all(conn, sql):
+
+def insert_query(tablename, values):
     cursor = None
+    # Connect to the database.
+    conn = make_connection(config_file = 'superstore_db.ini', section = 'mysql', list_remove_from_config = ['drivername','username'])
+    # Prepare sql statement
+    sql = ( "INSERT INTO " + tablename + " VALUES (" + "%s,"*(len(values)-1) + "%s)" )
 
-    try:
-        cursor = conn.cursor()
-        cursor.execute(sql)
+    if conn != None:
+        try:
+            cursor = conn.cursor()
+            # Execute insert statement with tuple values
+            cursor.execute(sql, values)
+            conn.commit()
+            
+        except Error as e:
+            print('Query failed')
+            print(e)
+            conn.rollback()
+            cursor.close()
 
-        # Return the all fetched data as a list of tuples,
-        # one tuple per table row.
-        rows = cursor.fetchall()
-        count = cursor.rowcount
-        
-        cursor.close()
-        return [rows, count]
-
-    except Error as e:
-        print('Query failed')
-        print(e)
-
-        cursor.close()
-        return [(), 0]
 
 def set_data_to_table_cells(ui_table, rows, money_index):
     """ Function to set data from list of tuples

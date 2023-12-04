@@ -47,3 +47,12 @@ CREATE TABLE superstore_db.sales (
     FOREIGN KEY (OrderID) REFERENCES orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES products(ProductID)
 );
+
+CREATE VIEW superstore_db.vw_products AS
+Select p.ProductID, p.ProductName, c.Category, c.SubCategory 
+From superstore_db.products p
+LEFT JOIN superstore_db.category c ON c.CategoryID = p.CategoryID;
+
+CREATE VIEW superstore_db.vw_orders AS
+SELECT o.OrderID, o.OrderDate, o.ShipDate, o.ShipMode, o.CustomerID, s.ProductID, s.Sales 
+FROM superstore_db.orders o RIGHT JOIN superstore_db.sales s on o.OrderID = s.OrderID;

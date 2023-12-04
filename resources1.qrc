@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="background">
+  <qresource prefix="bg">
     <file>images/background2.png</file>
   </qresource>
 </RCC>
