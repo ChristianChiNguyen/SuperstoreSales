@@ -1,5 +1,7 @@
 # SuperstoreSales
+
 Application to store sales data
+
 The executable file is in the main directory as AppMain.exe
 
 Install Softwares:
