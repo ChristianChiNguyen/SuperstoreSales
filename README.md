@@ -13,7 +13,8 @@ Install Softwares:
     > pip3 install mysql-connector-python-rf
 
 Setup Database:
-- Username and Password and AWS url are on the .ini files, the application will call these files to connect to databases (test & development database)
-- Create a schema in your local host with schema name "superstore_db"
-- Change the superstore_db.ini file to match your username and password of localhost
-- Run CSV-insert.jpynb to insert data from spreadsheet to database
+- Username and Password and AWS url are on the .ini files, the application will call these files to connect to databases (test & development database).
+- To set up databases in local host, change the superstore_db.ini file to match your username and password of localhost.
+- Run the below command in directory to create schema and set up databases and transform data from train.csv to databases (Test/Development, Yes/No for loading data):
+     > Python CreateDatabase.py Test Yes
+  
